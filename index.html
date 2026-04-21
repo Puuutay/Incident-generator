@@ -21,30 +21,63 @@ padding:12px; width:100%; margin-top:5px;
 background:#fff; color:#000; font-weight:bold; cursor:pointer;
 }
 
-.preview img { width:80px; margin:5px; }
-
+/* REPORT PAGE */
 .page {
 background:#fff; color:#000;
-width:11in; min-height:8.5in;
-padding:40px; margin:20px auto;
+width:8.5in;
+min-height:13in;
+padding:0.4in; /* maliit margin */
+margin:20px auto;
+font-size:13px;
+line-height:1.4; /* tight spacing */
 }
 
+/* HEADER */
+.header {
+text-align:center;
+margin-bottom:10px;
+}
+
+.header h2 {
+margin:0;
+font-size:16px;
+}
+
+.section {
+margin-bottom:8px;
+}
+
+.label {
+font-weight:bold;
+}
+
+/* PHOTO */
 .photo-grid {
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:10px;
+gap:8px;
 }
 
 .photo-grid img {
-width:100%; height:300px; object-fit:cover;
+width:100%;
+height:250px;
+object-fit:cover;
 }
 
-.actions { margin-top:20px; display:flex; gap:10px; }
+/* BUTTONS */
+.actions { margin-top:15px; display:flex; gap:10px; }
 .actions button { flex:1; }
 
 @media print {
+@page { size: 8.5in 13in; margin:0.3in; }
+
 body { background:#fff; }
 button { display:none; }
+
+.page {
+margin:0;
+box-shadow:none;
+}
 }
 </style>
 </head>
@@ -63,8 +96,6 @@ button { display:none; }
 
 <input type="file" id="images" multiple>
 
-<div class="preview" id="preview"></div>
-
 <button onclick="generate()">Generate Report</button>
 
 <div id="output"></div>
@@ -75,53 +106,80 @@ button { display:none; }
 
 let imgs = [];
 
-// preview images
-document.getElementById("images").addEventListener("change", async function(){
+// image load
+document.getElementById("images").addEventListener("change", function(){
 imgs = [];
-const preview = document.getElementById("preview");
-preview.innerHTML = "";
-
-for (let file of this.files) {
+for (let file of this.files){
 const reader = new FileReader();
-reader.onload = function(e){
-imgs.push(e.target.result);
-preview.innerHTML += `<img src="${e.target.result}">`;
-}
+reader.onload = e => imgs.push(e.target.result);
 reader.readAsDataURL(file);
 }
 });
 
 // translate
 async function translate(text){
-const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`;
-const res = await fetch(url);
+const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`);
 const data = await res.json();
 return data[0].map(x=>x[0]).join("");
 }
 
-// generate report
+// generate
 async function generate(){
 
 const name = document.getElementById("name").value.toUpperCase();
 const location = document.getElementById("location").value;
 const details = await translate(document.getElementById("details").value);
 const actions = await translate(document.getElementById("actions").value);
-
 const time = new Date().toLocaleString();
 
 let html = `
 <div class="page">
-<h2>Security Incident Report</h2>
-<p><b>Date:</b> ${time}</p>
-<p><b>Officer:</b> ${name}</p>
-<p><b>Location:</b> ${location}</p>
 
-<p><b>Incident:</b><br>${details}</p>
-<p><b>Action:</b><br>${actions}</p>
+<div class="header">
+<h2>SECURITY INCIDENT REPORT</h2>
+</div>
+
+<div class="section"><span class="label">Date and Time:</span> ${time}</div>
+<div class="section"><span class="label">Reporting Officer:</span> ${name}</div>
+<div class="section"><span class="label">Location:</span> ${location}</div>
+
+<div class="section">
+<span class="label">Incident Summary:</span><br>
+${details}
+</div>
+
+<div class="section">
+<span class="label">Action Taken:</span><br>
+${actions}
+</div>
+
+<div class="section">
+<span class="label">Assessment:</span><br>
+The incident was handled in accordance with standard procedures. No immediate threat was observed at the time of reporting.
+</div>
+
+<div class="section">
+<span class="label">Status:</span><br>
+The situation is under control and continuously monitored.
+</div>
+
+<div class="section">
+<span class="label">Documentation:</span><br>
+This report is submitted as an official record. All information stated is true and correct.
+</div>
+
+<br><br>
+
+<div>
+_________________________<br>
+${name}<br>
+Security Personnel
+</div>
+
 </div>
 `;
 
-// photos (2 per page)
+// photos
 for(let i=0;i<imgs.length;i+=2){
 html += `<div class="page"><div class="photo-grid">`;
 
@@ -145,14 +203,11 @@ html += `
 document.getElementById("output").innerHTML = html;
 }
 
-// ✅ FIXED PDF DOWNLOAD (NO BLANK)
+// FIXED PDF
 function downloadPDF(){
-
 const element = document.getElementById("output").cloneNode(true);
-
-// remove buttons
-const btns = element.querySelector(".actions");
-if(btns) btns.remove();
+const btn = element.querySelector(".actions");
+if(btn) btn.remove();
 
 const temp = document.createElement("div");
 temp.appendChild(element);
@@ -161,21 +216,18 @@ document.body.appendChild(temp);
 html2pdf().set({
 margin:0,
 filename:'Incident_Report.pdf',
-html2canvas:{scale:2, useCORS:true},
-jsPDF:{unit:'in', format:'letter', orientation:'landscape'}
+html2canvas:{scale:2},
+jsPDF:{unit:'in', format:[8.5,13], orientation:'portrait'}
 }).from(temp).save().then(()=>{
 document.body.removeChild(temp);
 });
 }
 
-// Word
+// WORD
 function downloadDOC(){
-
 const content = document.getElementById("output").innerHTML;
-
 const blob = new Blob(['\ufeff', content], {type:'application/msword'});
 const url = URL.createObjectURL(blob);
-
 const a = document.createElement("a");
 a.href = url;
 a.download = "Incident_Report.doc";
