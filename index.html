@@ -3,238 +3,387 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Incident Report</title>
-
+<title>Incident Report Maker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 <style>
-body { font-family: Arial; background:#111; color:#fff; padding:20px; }
-.container { max-width:900px; margin:auto; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #111; color: #fff; padding: 20px; }
+.container { max-width: 860px; margin: auto; }
+
+h2 { font-size: 20px; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #888; margin-bottom: 20px; }
+
+.sec-lbl {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 1px; color: #999; margin: 14px 0 6px;
+}
+
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 input, textarea {
-width:100%; padding:10px; margin-bottom:10px;
-background:#000; color:#fff; border:1px solid #333;
+  width: 100%; padding: 10px 12px;
+  background: #1c1c1c; color: #fff;
+  border: 1px solid #333; font-size: 13px;
+  font-family: Arial; outline: none;
+}
+input:focus, textarea:focus { border-color: #555; }
+textarea { resize: vertical; }
+
+.divider { border: none; border-top: 1px solid #2a2a2a; margin: 18px 0; }
+
+.gen-btn {
+  width: 100%; padding: 14px;
+  background: #1a6ef5; color: #fff;
+  border: none; font-size: 15px;
+  font-weight: bold; cursor: pointer;
+  margin-top: 12px;
+}
+.gen-btn:hover { background: #0f5de0; }
+.gen-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+.status {
+  text-align: center; font-size: 13px;
+  color: #aaa; margin-top: 10px; min-height: 20px;
 }
 
-button {
-padding:12px; width:100%; margin-top:5px;
-background:#fff; color:#000; font-weight:bold; cursor:pointer;
-}
-
-/* REPORT PAGE */
+/* ── REPORT PAGE ── */
 .page {
-background:#fff; color:#000;
-width:8.5in;
-min-height:13in;
-padding:0.4in; /* maliit margin */
-margin:20px auto;
-font-size:13px;
-line-height:1.4; /* tight spacing */
+  background: #fff; color: #000;
+  width: 8.5in; min-height: 13in;
+  padding: 0.55in 0.65in;
+  margin: 24px auto;
+  font-size: 12.5px; line-height: 1.65;
+  font-family: Arial, sans-serif;
 }
-
-/* HEADER */
-.header {
-text-align:center;
-margin-bottom:10px;
+.rpt-header {
+  text-align: center;
+  border-bottom: 2.5px solid #000;
+  padding-bottom: 10px; margin-bottom: 16px;
 }
-
-.header h2 {
-margin:0;
-font-size:16px;
+.rpt-header h2 {
+  font-size: 18px; letter-spacing: 2px;
+  font-weight: bold; color: #000; margin: 0 0 3px;
 }
+.rpt-header .sub { font-size: 11px; color: #555; }
 
-.section {
-margin-bottom:8px;
+.rpt-meta {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 5px 20px; margin-bottom: 18px;
+  font-size: 12px; border: 1px solid #bbb;
+  padding: 10px 14px; background: #f7f7f7;
 }
+.rpt-meta .row { display: flex; gap: 6px; }
+.rpt-meta .lbl { font-weight: bold; white-space: nowrap; min-width: 130px; }
 
-.label {
-font-weight:bold;
+.rpt-sec { margin-bottom: 16px; }
+.rpt-sec-title {
+  font-weight: bold; font-size: 12px;
+  border-bottom: 1px solid #000;
+  margin-bottom: 8px; padding-bottom: 3px;
+  text-transform: uppercase; letter-spacing: 0.5px; color: #000;
 }
+.rpt-sec p { margin: 0 0 7px; color: #000; }
 
-/* PHOTO */
-.photo-grid {
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
+.rpt-sig {
+  margin-top: 50px; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 30px;
 }
+.sig-box { text-align: center; }
+.sig-line { border-top: 1px solid #000; margin-bottom: 5px; }
 
-.photo-grid img {
-width:100%;
-height:250px;
-object-fit:cover;
+.photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.photo-grid.c1 { grid-template-columns: 1fr; }
+.photo-grid.c2 { grid-template-columns: 1fr 1fr; }
+.photo-grid.c3 { grid-template-columns: 1fr 1fr; }
+.photo-grid.c3 img:last-child {
+  grid-column: 1 / -1; width: 50%; margin: 0 auto; display: block;
 }
+.photo-grid img { width: 100%; height: 250px; object-fit: cover; border: 1px solid #ccc; }
 
-/* BUTTONS */
-.actions { margin-top:15px; display:flex; gap:10px; }
-.actions button { flex:1; }
+.dl-btns { margin-top: 15px; display: flex; gap: 10px; }
+.dl-btns button {
+  flex: 1; padding: 12px; background: #fff; color: #000;
+  font-weight: bold; cursor: pointer;
+  border: 1px solid #ccc; font-size: 13px;
+}
+.dl-btns button:hover { background: #f0f0f0; }
 
 @media print {
-@page { size: 8.5in 13in; margin:0.3in; }
-
-body { background:#fff; }
-button { display:none; }
-
-.page {
-margin:0;
-box-shadow:none;
-}
+  @page { size: 8.5in 13in; margin: 0; }
+  body { background: #fff; padding: 0; }
+  .form-wrap, .dl-btns, .status { display: none; }
+  .page { margin: 0; }
 }
 </style>
 </head>
-
 <body>
-
 <div class="container">
 
-<h2>Incident Report Maker</h2>
+  <h2>Incident Report Maker</h2>
+  <p class="subtitle">Pwedeng Tagalog o English. Auto-translate, auto-summary, at auto-assessment base sa action taken.</p>
 
-<input id="name" placeholder="Reporting Officer">
-<input id="location" placeholder="Location">
+  <div class="form-wrap">
 
-<textarea id="details" placeholder="Incident Details (Tagalog)"></textarea>
-<textarea id="actions" placeholder="Response Taken (Tagalog)"></textarea>
+    <div class="sec-lbl">Basic Information</div>
+    <div class="g2">
+      <input id="datetime" placeholder="Date and Time (e.g. May 15, 2025 – 10:30 AM)">
+      <input id="name" placeholder="Security Personnel Name">
+    </div>
+    <div style="height:10px"></div>
+    <div class="g2">
+      <input id="location" placeholder="Location / Area">
+      <input id="shift" placeholder="Shift / Post (e.g. Morning Shift, Gate 2)">
+    </div>
 
-<input type="file" id="images" multiple>
+    <hr class="divider">
 
-<button onclick="generate()">Generate Report</button>
+    <div class="sec-lbl">Incident Details</div>
+    <textarea id="details" rows="6" placeholder="Ilarawan ang nangyari... (Tagalog o English)&#10;&#10;Halimbawa: Noong alas dos ng hapon, may isang lalaking suot puting t-shirt na nagtangkang magnakaw ng cellphone sa loob ng canteen..."></textarea>
 
-<div id="output"></div>
+    <div class="sec-lbl" style="margin-top:14px">Action Taken</div>
+    <textarea id="action" rows="4" placeholder="Ano ang ginawa ng security? (Tagalog o English)&#10;&#10;Halimbawa: Agad na tinawagan ang management at na-coordinate sa pulis. Ang suspek ay inihawak hanggang dumating ang awtoridad..."></textarea>
+    <p style="font-size:11px;color:#666;margin-top:5px">* Assessment ay awtomatikong gagawin base dito.</p>
+
+    <hr class="divider">
+
+    <div class="sec-lbl">Photos (max 4 per page)</div>
+    <input type="file" id="images" multiple accept="image/*">
+
+    <hr class="divider">
+
+    <button class="gen-btn" id="mainBtn" onclick="generateReport()">
+      Generate Formal Report
+    </button>
+    <div class="status" id="status"></div>
+
+  </div>
+
+  <div id="output"></div>
 
 </div>
-
 <script>
 
 let imgs = [];
 
-// image load
-document.getElementById("images").addEventListener("change", function(){
-imgs = [];
-for (let file of this.files){
-const reader = new FileReader();
-reader.onload = e => imgs.push(e.target.result);
-reader.readAsDataURL(file);
-}
+document.getElementById("images").addEventListener("change", function () {
+  imgs = [];
+  Array.from(this.files).forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = e => { imgs[i] = e.target.result; };
+    reader.readAsDataURL(file);
+  });
 });
 
-// translate
-async function translate(text){
-const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`);
-const data = await res.json();
-return data[0].map(x=>x[0]).join("");
+async function translate(text) {
+  if (!text || !text.trim()) return "";
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data[0].map(x => x[0]).join(" ").trim();
+  } catch (e) {
+    return text;
+  }
 }
 
-// generate
-async function generate(){
-
-const name = document.getElementById("name").value.toUpperCase();
-const location = document.getElementById("location").value;
-const details = await translate(document.getElementById("details").value);
-const actions = await translate(document.getElementById("actions").value);
-const time = new Date().toLocaleString();
-
-let html = `
-<div class="page">
-
-<div class="header">
-<h2>SECURITY INCIDENT REPORT</h2>
-</div>
-
-<div class="section"><span class="label">Date and Time:</span> ${time}</div>
-<div class="section"><span class="label">Reporting Officer:</span> ${name}</div>
-<div class="section"><span class="label">Location:</span> ${location}</div>
-
-<div class="section">
-<span class="label">Incident Summary:</span><br>
-${details}
-</div>
-
-<div class="section">
-<span class="label">Action Taken:</span><br>
-${actions}
-</div>
-
-<div class="section">
-<span class="label">Assessment:</span><br>
-The incident was handled in accordance with standard procedures. No immediate threat was observed at the time of reporting.
-</div>
-
-<div class="section">
-<span class="label">Status:</span><br>
-The situation is under control and continuously monitored.
-</div>
-
-<div class="section">
-<span class="label">Documentation:</span><br>
-This report is submitted as an official record. All information stated is true and correct.
-</div>
-
-<br><br>
-
-<div>
-_________________________<br>
-${name}<br>
-Security Personnel
-</div>
-
-</div>
-`;
-
-// photos
-for(let i=0;i<imgs.length;i+=2){
-html += `<div class="page"><div class="photo-grid">`;
-
-html += `<img src="${imgs[i]}">`;
-
-if(imgs[i+1]){
-html += `<img src="${imgs[i+1]}">`;
+function formalize(text) {
+  if (!text) return "";
+  return text
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/(^\w|[.!?]\s+\w)/g, c => c.toUpperCase());
 }
 
-html += `</div></div>`;
+function buildSummary(details, location, datetime) {
+  const loc = location || "the premises";
+  const dt  = datetime || "the reported date and time";
+  return `This report documents a security incident that occurred at ${loc} on ${dt}. The following details were recorded by the undersigned security personnel: ${details}`;
 }
 
-html += `
-<div class="actions">
-<button onclick="downloadPDF()">Download PDF</button>
-<button onclick="downloadDOC()">Download Word</button>
-<button onclick="window.print()">Print</button>
-</div>
-`;
+// Auto-generate assessment based on translated action taken
+function buildAssessment(actionText) {
+  const a = actionText.toLowerCase();
 
-document.getElementById("output").innerHTML = html;
+  let outcome = "";
+  let status  = "";
+  let closing = "The situation has been resolved and normal security operations have resumed.";
+
+  // Detect keywords and build contextual assessment
+  if (a.includes("police") || a.includes("authorit") || a.includes("law enforcement")) {
+    outcome = "The appropriate law enforcement authorities were notified and responded to the incident. The matter was properly escalated in accordance with standard protocol.";
+  } else if (a.includes("management") || a.includes("supervisor") || a.includes("superior")) {
+    outcome = "The incident was immediately reported to management and the necessary supervisory personnel were informed in a timely manner.";
+  } else if (a.includes("arrest") || a.includes("apprehend") || a.includes("detained") || a.includes("held") || a.includes("custody")) {
+    outcome = "The subject was successfully apprehended and detained pending further investigation or the arrival of the appropriate authorities.";
+  } else if (a.includes("escort") || a.includes("removed") || a.includes("asked to leave") || a.includes("evict")) {
+    outcome = "The individual involved was escorted off the premises, and access was denied to prevent further disruption.";
+  } else if (a.includes("monitor") || a.includes("cctv") || a.includes("camera") || a.includes("footage")) {
+    outcome = "CCTV footage and available monitoring records were reviewed and secured as evidence for documentation purposes.";
+  } else if (a.includes("first aid") || a.includes("medical") || a.includes("hospital") || a.includes("ambulance")) {
+    outcome = "Medical assistance was rendered promptly to the affected individual(s). Emergency medical services were contacted as necessary.";
+  } else if (a.includes("report") || a.includes("log") || a.includes("record") || a.includes("documented")) {
+    outcome = "The incident was properly documented and recorded in the official security log for future reference and investigation.";
+  } else if (a.includes("warn") || a.includes("verbal")) {
+    outcome = "A verbal warning was issued to the individual involved, and the matter was addressed through proper communication in accordance with security guidelines.";
+  } else {
+    outcome = "Immediate action was taken by the security personnel to address and contain the incident in accordance with standard security procedures.";
+  }
+
+  // Detect if situation was resolved or ongoing
+  if (a.includes("under control") || a.includes("resolved") || a.includes("calm") || a.includes("no further")) {
+    status = "The situation was assessed to be fully under control at the time of reporting, with no further threat observed.";
+  } else if (a.includes("ongoing") || a.includes("still") || a.includes("continue") || a.includes("investigation")) {
+    status = "The situation remains under close monitoring and further investigation is ongoing as necessary.";
+    closing = "Security personnel will continue to observe the area and provide updates as the situation develops.";
+  } else {
+    status = "The incident was contained and no immediate threat to persons or property was observed at the time of this report.";
+  }
+
+  return `${outcome} ${status} ${closing}`;
 }
 
-// FIXED PDF
-function downloadPDF(){
-const element = document.getElementById("output").cloneNode(true);
-const btn = element.querySelector(".actions");
-if(btn) btn.remove();
+async function generateReport() {
+  const btn    = document.getElementById("mainBtn");
+  const status = document.getElementById("status");
 
-const temp = document.createElement("div");
-temp.appendChild(element);
-document.body.appendChild(temp);
+  btn.disabled = true;
+  status.textContent = "⏳ Translating to English...";
 
-html2pdf().set({
-margin:0,
-filename:'Incident_Report.pdf',
-html2canvas:{scale:2},
-jsPDF:{unit:'in', format:[8.5,13], orientation:'portrait'}
-}).from(temp).save().then(()=>{
-document.body.removeChild(temp);
-});
+  const datetime = document.getElementById("datetime").value.trim() || "N/A";
+  const name     = document.getElementById("name").value.trim().toUpperCase() || "N/A";
+  const location = document.getElementById("location").value.trim() || "N/A";
+  const shift    = document.getElementById("shift").value.trim() || "N/A";
+  const rawDetails = document.getElementById("details").value.trim();
+  const rawAction  = document.getElementById("action").value.trim();
+
+  const [tDetails, tAction] = await Promise.all([
+    translate(rawDetails),
+    translate(rawAction),
+  ]);
+
+  const fDetails = formalize(tDetails);
+  const fAction  = formalize(tAction);
+
+  status.textContent = "⏳ Building formal report...";
+
+  const summary    = buildSummary(fDetails, location, datetime);
+  const actionText = fAction
+    ? `Upon observing the incident, the security personnel immediately took the following course of action: ${fAction}`
+    : "Security personnel responded immediately in accordance with standard operating procedures.";
+  const assessment = buildAssessment(fAction);
+
+  let html = `
+  <div class="page">
+    <div class="rpt-header">
+      <h2>SECURITY INCIDENT REPORT</h2>
+      <div class="sub">Official Security Documentation</div>
+    </div>
+
+    <div class="rpt-meta">
+      <div class="row"><span class="lbl">Date &amp; Time:</span><span>${datetime}</span></div>
+      <div class="row"><span class="lbl">Security Personnel:</span><span>${name}</span></div>
+      <div class="row"><span class="lbl">Location:</span><span>${location}</span></div>
+      <div class="row"><span class="lbl">Shift / Post:</span><span>${shift}</span></div>
+    </div>
+
+    <div class="rpt-sec">
+      <div class="rpt-sec-title">Incident Summary</div>
+      <p>${summary}</p>
+    </div>
+
+    <div class="rpt-sec">
+      <div class="rpt-sec-title">Incident Details</div>
+      <p>${fDetails || "No details provided."}</p>
+    </div>
+
+    <div class="rpt-sec">
+      <div class="rpt-sec-title">Action Taken</div>
+      <p>${actionText}</p>
+    </div>
+
+    <div class="rpt-sec">
+      <div class="rpt-sec-title">Assessment</div>
+      <p>${assessment}</p>
+    </div>
+
+    <div class="rpt-sec">
+      <div class="rpt-sec-title">Documentation</div>
+      <p>This report is submitted as an official record of the incident described herein. All information stated is true and correct to the best of the reporting officer's knowledge and belief. This document shall be filed and kept as part of the official security log.</p>
+    </div>
+
+    <div class="rpt-sig">
+      <div class="sig-box">
+        <br><br>
+        <div class="sig-line"></div>
+        <div style="font-weight:bold">${name}</div>
+        <div style="font-size:11px;color:#444">Security Personnel</div>
+      </div>
+      <div class="sig-box">
+        <br><br>
+        <div class="sig-line"></div>
+        <div style="font-weight:bold">________________________________</div>
+        <div style="font-size:11px;color:#444">Received / Noted By</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Photo pages
+  for (let i = 0; i < imgs.length; i += 4) {
+    const chunk = imgs.slice(i, i + 4);
+    const count = chunk.length;
+    html += `
+    <div class="page">
+      <div class="rpt-header">
+        <h2>SECURITY INCIDENT REPORT</h2>
+        <div class="sub">Photo Documentation</div>
+      </div>
+      <div class="photo-grid c${count}">
+        ${chunk.map(src => `<img src="${src}">`).join("")}
+      </div>
+      <p style="font-size:11px;color:#666;margin-top:10px;text-align:center">
+        Photos submitted as part of the official incident report dated ${datetime}.
+      </p>
+    </div>`;
+  }
+
+  html += `
+  <div class="dl-btns">
+    <button onclick="downloadPDF()">⬇ Download PDF</button>
+    <button onclick="downloadDOC()">⬇ Download Word</button>
+    <button onclick="window.print()">🖨 Print</button>
+  </div>`;
+
+  document.getElementById("output").innerHTML = html;
+  document.getElementById("output").scrollIntoView({ behavior: "smooth" });
+
+  status.textContent = "✅ Report generated!";
+  btn.disabled = false;
 }
 
-// WORD
-function downloadDOC(){
-const content = document.getElementById("output").innerHTML;
-const blob = new Blob(['\ufeff', content], {type:'application/msword'});
-const url = URL.createObjectURL(blob);
-const a = document.createElement("a");
-a.href = url;
-a.download = "Incident_Report.doc";
-a.click();
+function downloadPDF() {
+  const element = document.getElementById("output").cloneNode(true);
+  const btns = element.querySelector(".dl-btns");
+  if (btns) btns.remove();
+  const temp = document.createElement("div");
+  temp.appendChild(element);
+  document.body.appendChild(temp);
+  html2pdf().set({
+    margin: 0,
+    filename: "Incident_Report.pdf",
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: "in", format: [8.5, 13], orientation: "portrait" }
+  }).from(temp).save().then(() => document.body.removeChild(temp));
 }
 
+function downloadDOC() {
+  const content = document.getElementById("output").innerHTML;
+  const blob = new Blob(["\ufeff", content], { type: "application/msword" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Incident_Report.doc";
+  a.click();
+}
 </script>
-
 </body>
 </html>
